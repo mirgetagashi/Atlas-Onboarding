@@ -41,32 +41,6 @@ From the repository root:
 `run.ps1` does three things: starts the infrastructure in Docker and waits until it is healthy, builds the
 solution, and starts the four services on the host, each in its own window:
 
-```powershell
-# Starts everything: infrastructure in Docker, the four .NET processes on the host (each in its own window).
-#   ./run.ps1
-$ErrorActionPreference = 'Stop'
-Set-Location $PSScriptRoot
-
-Write-Host "1/3 Starting infrastructure (SQL Server, Seq, RabbitMQ, Azurite)..." -ForegroundColor Cyan
-docker compose -f platform/docker-compose.yml up -d --wait
-
-Write-Host "2/3 Building the solution..." -ForegroundColor Cyan
-dotnet build Atlas.sln
-if ($LASTEXITCODE -ne 0) { throw "Build failed." }
-
-Write-Host "3/3 Starting services..." -ForegroundColor Cyan
-$services = @(
-    'src/Providers/Atlas.Providers.Mock',
-    'src/Onboarding/Atlas.Onboarding.Api',
-    'src/Verification/Atlas.Verification.Worker',
-    'src/Backoffice/Atlas.Backoffice.Api'
-)
-foreach ($service in $services) {
-    Start-Process dotnet -ArgumentList "run --no-build --project $service"
-}
-
-Write-Host "Services started. Run the scenarios in requests/atlas.http" -ForegroundColor Green
-```
 
 Databases and blob containers are created automatically on first start. Each service exposes Swagger at
 `/swagger` and a health check at `/health`; logs of all services are collected in Seq.
