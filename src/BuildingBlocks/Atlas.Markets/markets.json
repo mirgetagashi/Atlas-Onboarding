@@ -1,0 +1,31 @@
+{
+  "Markets": {
+    "MA": {
+      "Activation": "Remote",
+      "Identifiers": [ { "Type": "NationalId", "Scheme": "Digits13" } ]
+    },
+    "MB": {
+      "Activation": "Remote",
+      "Identifiers": [ { "Type": "NationalId", "Scheme": "Digits13" } ]
+    },
+    "MC": {
+      "Activation": "Remote",
+      "Identifiers": [ { "Type": "NationalId", "Scheme": "UnifiedCitizenId9" } ]
+    },
+    "MD": {
+      "Activation": "InBranch",
+      "Identifiers": [ { "Type": "NationalId", "Scheme": "Digits10" } ]
+    },
+    "ME": {
+      "Activation": "Remote",
+      "Identifiers": [ { "Type": "NationalId", "Scheme": "Digits10" } ]
+    },
+    "MF": {
+      "Activation": "Remote",
+      "Identifiers": [
+        { "Type": "NationalId", "Scheme": "UnspecifiedNationalId" },
+        { "Type": "Passport", "Scheme": "Passport" }
+      ]
+    }
+  }
+}

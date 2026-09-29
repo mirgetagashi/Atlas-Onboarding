@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    Implements the interfaces of the UseCases layer with real technology:
+    SQL Server (EF Core), Azure Blob Storage, RabbitMQ (through the transactional outbox).
+  -->
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" />
+    <PackageReference Include="Azure.Storage.Blobs" />
+    <PackageReference Include="MassTransit.RabbitMQ" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Atlas.Onboarding.UseCases\Atlas.Onboarding.UseCases.csproj" />
+    <ProjectReference Include="..\..\BuildingBlocks\Atlas.Contracts\Atlas.Contracts.csproj" />
+  </ItemGroup>
+</Project>

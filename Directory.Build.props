@@ -1,0 +1,9 @@
+<Project>
+  <!-- Settings shared by every project in the solution, so no .csproj repeats them. -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>12</LangVersion>
+  </PropertyGroup>
+</Project>

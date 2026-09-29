@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <!--
+    Background worker: runs identity verification and sanctions screening for submitted applications.
+    Web SDK only so it can expose /health; it serves no business endpoints.
+  -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Http.Resilience" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\BuildingBlocks\Atlas.ServiceDefaults\Atlas.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\..\BuildingBlocks\Atlas.Contracts\Atlas.Contracts.csproj" />
+  </ItemGroup>
+</Project>

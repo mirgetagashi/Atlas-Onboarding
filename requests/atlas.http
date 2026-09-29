@@ -1,0 +1,240 @@
+### Atlas end-to-end scenarios
+### Run in Visual Studio 2022 (17.12+), Rider, or VS Code with the REST Client extension.
+### Start everything first with ./run.ps1 (or ./run.sh).
+###
+### Mock provider rules (see Providers.Mock):
+###   lastName "Forged" fails the identity check (REJECTED)
+###   lastName containing "Match" gives a possible sanctions match (PENDING_COMPLIANCE_REVIEW)
+###   anything else is clear (APPROVED, or AWAITING_BRANCH_ACTIVATION in MD)
+
+@onboarding = http://localhost:5100
+@backoffice = http://localhost:5200
+@providers = http://localhost:5300
+
+### 0. What does market MB need? (drives the mobile screens)
+GET {{onboarding}}/markets/MB/requirements
+
+
+############################################################
+### SCENARIO 1: happy path in MB (remote activation)
+############################################################
+
+# @name create
+POST {{onboarding}}/applications
+Content-Type: application/json
+
+{
+  "market": "MB",
+  "firstName": "Arta",
+  "lastName": "Krasniqi",
+  "dateOfBirth": "1991-03-04",
+  "email": "arta@example.com",
+  "phone": "+38344123456",
+  "identifier": { "type": "NATIONAL_ID", "value": "0403991450016" }
+}
+
+### 1b. Upload the identity document (plain image body, no base64)
+PUT {{onboarding}}/applications/{{create.response.body.$.applicationId}}/documents/IDENTITY_DOCUMENT
+X-Applicant-Token: {{create.response.body.$.applicantToken}}
+Content-Type: image/png
+
+< ./samples/identity-document.png
+
+### 1c. Upload the selfie
+PUT {{onboarding}}/applications/{{create.response.body.$.applicationId}}/documents/SELFIE
+X-Applicant-Token: {{create.response.body.$.applicantToken}}
+Content-Type: image/png
+
+< ./samples/selfie.png
+
+### 1d. Accept terms and submit (expect 202, status SUBMITTED)
+POST {{onboarding}}/applications/{{create.response.body.$.applicationId}}/submit
+X-Applicant-Token: {{create.response.body.$.applicantToken}}
+Content-Type: application/json
+
+{ "termsAccepted": true, "termsVersion": "2026-09" }
+
+### 1e. A second or two later: APPROVED
+GET {{onboarding}}/applications/{{create.response.body.$.applicationId}}
+X-Applicant-Token: {{create.response.body.$.applicantToken}}
+
+
+############################################################
+### SCENARIO 2: possible sanctions match, reviewed by an officer
+############################################################
+
+# @name match
+POST {{onboarding}}/applications
+Content-Type: application/json
+
+{
+  "market": "MB",
+  "firstName": "Dren",
+  "lastName": "Matchaj",
+  "dateOfBirth": "1985-11-20",
+  "email": "dren@example.com",
+  "phone": "+38344999888",
+  "identifier": { "type": "NATIONAL_ID", "value": "2011985450011" }
+}
+
+###
+PUT {{onboarding}}/applications/{{match.response.body.$.applicationId}}/documents/IDENTITY_DOCUMENT
+X-Applicant-Token: {{match.response.body.$.applicantToken}}
+Content-Type: image/png
+
+< ./samples/identity-document.png
+
+###
+PUT {{onboarding}}/applications/{{match.response.body.$.applicationId}}/documents/SELFIE
+X-Applicant-Token: {{match.response.body.$.applicantToken}}
+Content-Type: image/png
+
+< ./samples/selfie.png
+
+###
+POST {{onboarding}}/applications/{{match.response.body.$.applicationId}}/submit
+X-Applicant-Token: {{match.response.body.$.applicantToken}}
+Content-Type: application/json
+
+{ "termsAccepted": true, "termsVersion": "2026-09" }
+
+### 2b. Status is now PENDING_COMPLIANCE_REVIEW (not rejected)
+GET {{onboarding}}/applications/{{match.response.body.$.applicationId}}
+X-Applicant-Token: {{match.response.body.$.applicantToken}}
+
+### 2c. Log in as a compliance officer of MB (development only)
+# @name officer
+POST {{backoffice}}/dev/token
+Content-Type: application/json
+
+{ "userId": "officer.anna", "role": "ComplianceOfficer", "market": "MB" }
+
+### 2d. The officer's queue
+GET {{backoffice}}/review-cases
+Authorization: Bearer {{officer.response.body.$.accessToken}}
+
+### 2e. Open the case (this read is audited against officer.anna)
+GET {{backoffice}}/review-cases/{{match.response.body.$.applicationId}}
+Authorization: Bearer {{officer.response.body.$.accessToken}}
+
+### 2f. Look at the selfie (also audited)
+GET {{backoffice}}/review-cases/{{match.response.body.$.applicationId}}/documents/SELFIE
+Authorization: Bearer {{officer.response.body.$.accessToken}}
+
+### 2g. Decide
+POST {{backoffice}}/review-cases/{{match.response.body.$.applicationId}}/decision
+Authorization: Bearer {{officer.response.body.$.accessToken}}
+Content-Type: application/json
+
+{ "decision": "APPROVE", "reason": "False positive: listed person has a different date of birth and nationality." }
+
+### 2h. An officer from another market cannot see MB cases (expect 403)
+# @name officerMc
+POST {{backoffice}}/dev/token
+Content-Type: application/json
+
+{ "userId": "officer.teuta", "role": "ComplianceOfficer", "market": "MC" }
+
+###
+GET {{backoffice}}/review-cases/{{match.response.body.$.applicationId}}
+Authorization: Bearer {{officerMc.response.body.$.accessToken}}
+
+
+############################################################
+### SCENARIO 3: market MD, checks pass, then branch visit
+############################################################
+
+# @name md
+POST {{onboarding}}/applications
+Content-Type: application/json
+
+{
+  "market": "MD",
+  "firstName": "Liridon",
+  "lastName": "Berisha",
+  "dateOfBirth": "1990-01-15",
+  "email": "liridon@example.com",
+  "phone": "+38349111222",
+  "identifier": { "type": "NATIONAL_ID", "value": "1234567890" }
+}
+
+###
+PUT {{onboarding}}/applications/{{md.response.body.$.applicationId}}/documents/IDENTITY_DOCUMENT
+X-Applicant-Token: {{md.response.body.$.applicantToken}}
+Content-Type: image/png
+
+< ./samples/identity-document.png
+
+###
+PUT {{onboarding}}/applications/{{md.response.body.$.applicationId}}/documents/SELFIE
+X-Applicant-Token: {{md.response.body.$.applicantToken}}
+Content-Type: image/png
+
+< ./samples/selfie.png
+
+###
+POST {{onboarding}}/applications/{{md.response.body.$.applicationId}}/submit
+X-Applicant-Token: {{md.response.body.$.applicantToken}}
+Content-Type: application/json
+
+{ "termsAccepted": true, "termsVersion": "2026-09" }
+
+### 3b. Status: AWAITING_BRANCH_ACTIVATION, next step VISIT_BRANCH_TO_SIGN
+GET {{onboarding}}/applications/{{md.response.body.$.applicationId}}
+X-Applicant-Token: {{md.response.body.$.applicantToken}}
+
+### 3c. Branch employee in MD logs in
+# @name branch
+POST {{backoffice}}/dev/token
+Content-Type: application/json
+
+{ "userId": "branch.ben", "role": "BranchStaff", "market": "MD" }
+
+### 3d. Confirm the wet signature (status becomes APPROVED)
+POST {{backoffice}}/branch-activations
+Authorization: Bearer {{branch.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+  "applicationId": "{{md.response.body.$.applicationId}}",
+  "branchId": "MD-BRANCH-01",
+  "wetSignatureConfirmed": true
+}
+
+
+############################################################
+### SCENARIO 4: invalid MC id (digit in position 9), expect 400
+############################################################
+
+POST {{onboarding}}/applications
+Content-Type: application/json
+
+{
+  "market": "MC",
+  "firstName": "Test",
+  "lastName": "Person",
+  "dateOfBirth": "1990-01-01",
+  "email": "test@example.com",
+  "phone": "+38344000000",
+  "identifier": { "type": "NATIONAL_ID", "value": "123456789" }
+}
+
+
+############################################################
+### SCENARIO 5: provider outage, the application waits and is not rejected
+############################################################
+
+### 5a. Make every provider call fail
+PUT {{providers}}/chaos
+Content-Type: application/json
+
+{ "failureRate": 1.0 }
+
+### 5b. Now repeat SCENARIO 1 (create, upload x2, submit): the status stays SUBMITTED,
+###     and the worker keeps retrying (watch Seq at http://localhost:5341).
+
+### 5c. Restore the providers: the retries succeed and the application moves on by itself
+PUT {{providers}}/chaos
+Content-Type: application/json
+
+{ "failureRate": 0.0 }

@@ -1,0 +1,3 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Tiny shared kernel: the Result/Error types use-case services return. No dependencies, no HTTP. -->
+</Project>

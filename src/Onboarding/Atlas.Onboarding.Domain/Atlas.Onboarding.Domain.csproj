@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- The business rules. No EF Core, no HTTP, no messaging: only plain C#, so it is easy to test. -->
+  <ItemGroup>
+    <ProjectReference Include="..\..\BuildingBlocks\Atlas.Markets\Atlas.Markets.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    Market rules (Annex B) as data + code. Pure library: no ASP.NET, no database.
+    markets.json is copied into the output of every project that references this one.
+  -->
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="markets.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <!--
+    The HTTP and messaging entry points only: thin controllers and a thin consumer that call the
+    UseCases layer. No business logic lives here.
+  -->
+  <ItemGroup>
+    <ProjectReference Include="..\Atlas.Onboarding.UseCases\Atlas.Onboarding.UseCases.csproj" />
+    <ProjectReference Include="..\Atlas.Onboarding.Infrastructure\Atlas.Onboarding.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\BuildingBlocks\Atlas.ServiceDefaults\Atlas.ServiceDefaults.csproj" />
+  </ItemGroup>
+</Project>

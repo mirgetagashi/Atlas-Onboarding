@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    Application layer: one service per group of use cases (create an application, submit it, record a
+    compliance decision...). It orchestrates the domain and talks to storage only through the interfaces
+    in /Abstractions, which Infrastructure implements. No EF Core, no HTTP, no ASP.NET here.
+
+    (Named "UseCases" rather than "Application" so it does not clash with the domain's Application class.)
+  -->
+  <ItemGroup>
+    <ProjectReference Include="..\Atlas.Onboarding.Domain\Atlas.Onboarding.Domain.csproj" />
+    <ProjectReference Include="..\..\BuildingBlocks\Atlas.Common\Atlas.Common.csproj" />
+  </ItemGroup>
+</Project>

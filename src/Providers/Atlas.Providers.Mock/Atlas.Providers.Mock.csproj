@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <!-- Stand-in for IDNow and Refinitiv World-Check (no real credentials in this exercise). Not part of the product. -->
+  <ItemGroup>
+    <ProjectReference Include="..\..\BuildingBlocks\Atlas.ServiceDefaults\Atlas.ServiceDefaults.csproj" />
+  </ItemGroup>
+</Project>

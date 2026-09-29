@@ -1,0 +1,61 @@
+# Atlas local infrastructure.
+#
+#   docker compose up -d --wait
+#
+# SQL Server and Seq came with the task. RabbitMQ (messaging between services)
+# and Azurite (blob storage for identity documents) were added from the
+# allowed-images list.
+
+services:
+
+  sql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "Local_Dev_Password_1"
+      MSSQL_PID: "Developer"
+    ports:
+      - "${SQL_PORT:-1433}:1433"
+    volumes:
+      - sql-data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -C -Q 'SELECT 1' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
+  seq:
+    image: datalust/seq:latest
+    environment:
+      ACCEPT_EULA: "Y"
+    ports:
+      - "${SEQ_PORT:-5341}:80"
+    volumes:
+      - seq-data:/data
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "${RABBIT_PORT:-5672}:5672"
+      - "${RABBIT_UI_PORT:-15672}:15672"   # management UI: guest / guest
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite:latest
+    # Blob service only; skip API version check so newer Azure SDKs work.
+    command: "azurite-blob --blobHost 0.0.0.0 --loose --skipApiVersionCheck"
+    ports:
+      - "${BLOB_PORT:-10000}:10000"
+    volumes:
+      - azurite-data:/data
+
+volumes:
+  sql-data:
+  seq-data:
+  azurite-data:
