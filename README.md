@@ -258,45 +258,7 @@ would point to infrastructure inside that country; the code does not change.
 
 ---
 
-## 8. API reference
-
-### Onboarding.Api: mobile
-
-The applicant is identified by the `X-Applicant-Token` header returned at creation (only its hash is stored).
-
-| Method | Route | Purpose | Success |
-|---|---|---|---|
-| GET | `/markets` | All markets and their rules | 200 |
-| GET | `/markets/{market}/requirements` | Accepted identifiers, activation mode, documents, terms version | 200 |
-| POST | `/applications` | Create a draft with personal details | 201 + token |
-| GET | `/applications/{id}` | Status and `nextSteps` (resume) | 200 |
-| PUT | `/applications/{id}/details` | Correct details (draft only) | 200 |
-| PUT | `/applications/{id}/documents/{IDENTITY_DOCUMENT\|SELFIE}` | Upload image as raw body, `image/jpeg`/`image/png`, max 10 MB | 200 |
-| POST | `/applications/{id}/submit` | Accept terms and submit (idempotent) | 202 |
-
-### Onboarding.Api: internal (JWT)
-
-| Method | Route | Role |
-|---|---|---|
-| GET | `/internal/applications/{id}` | ComplianceOfficer, BranchStaff, VerificationService |
-| GET | `/internal/applications/{id}/documents/{type}` | ComplianceOfficer |
-| POST | `/internal/applications/{id}/compliance-decision` | ComplianceOfficer |
-| POST | `/internal/applications/{id}/branch-activation` | BranchStaff |
-
-### Backoffice.Api: staff (JWT with `role` and `market`)
-
-| Method | Route | Purpose |
-|---|---|---|
-| POST | `/dev/token` | **Development only**: log in as a named officer or branch employee of one market |
-| GET | `/review-cases?status=OPEN` | The officer's queue for their market, most urgent first |
-| GET | `/review-cases/{applicationId}` | Case + live application data (audited) |
-| GET | `/review-cases/{applicationId}/documents/{type}` | View a document (audited) |
-| POST | `/review-cases/{applicationId}/decision` | `APPROVE` / `REJECT` with a mandatory reason |
-| POST | `/branch-activations` | MD: confirm the wet signature |
-
----
-
-## 9. Error handling
+## 8. Error handling
 
 Two kinds of failure are handled differently, on purpose:
 
@@ -319,7 +281,7 @@ Every error body is an RFC 9457 `ProblemDetails`, with a machine-readable `code`
 
 ---
 
-## 10. Reliability: messaging, outbox, retries
+## 9. Reliability: messaging, outbox, retries
 
 - **Transactional outbox**: the status change and its event are saved together. There is no
   "status changed but the event was lost".
@@ -334,7 +296,7 @@ Every error body is an RFC 9457 `ProblemDetails`, with a machine-readable `code`
 
 ---
 
-## 11. Security and audit
+## 10. Security and audit
 
 - **Applicants** receive a random token at creation; only its SHA-256 hash is stored, compared in constant time.
 - **Staff** authenticate with a JWT (`sub`, `role`, `market`). Officers only see and decide cases of their
@@ -348,7 +310,7 @@ Every error body is an RFC 9457 `ProblemDetails`, with a machine-readable `code`
 
 ---
 
-## 12. Tests
+## 11. Tests
 
 ```
 dotnet test
